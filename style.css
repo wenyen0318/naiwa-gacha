@@ -12,7 +12,7 @@
   --SSR: #f2b632;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
   margin: 0;
@@ -180,8 +180,8 @@ canvas {
   border: 6px solid var(--N);
   padding: 10px;
 }
-.card-front svg { width: 140px; height: 140px; }
-.card-front .name { font-weight: bold; font-size: 1.15rem; margin-top: 6px; }
+.card-front img { width: 136px; height: 170px; object-fit: cover; border-radius: 10px; margin-top: 6px; }
+.card-front .name { font-weight: bold; font-size: 1.1rem; margin-top: 4px; }
 .card-front .desc { font-size: .8rem; color: #8a7562; margin-top: 4px; }
 
 .rarity-N  { border-color: var(--N); }
@@ -246,7 +246,7 @@ canvas {
   padding: 8px 4px;
   position: relative;
 }
-.dex-item svg { width: 80px; height: 80px; }
+.dex-item img { width: 96px; height: 120px; object-fit: cover; border-radius: 8px; }
 .dex-item .name { font-size: .85rem; font-weight: bold; }
 .dex-item .count {
   position: absolute;
@@ -258,7 +258,7 @@ canvas {
   padding: 0 6px;
 }
 .dex-item.locked { border-color: #e6dccf; }
-.dex-item.locked svg { filter: brightness(0) opacity(.15); }
+.dex-item.locked img { filter: grayscale(1) blur(6px) opacity(.35); }
 .dex-item.locked .name { color: #c2b5a5; }
 
 footer {

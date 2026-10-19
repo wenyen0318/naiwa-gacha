@@ -3,21 +3,20 @@
 // ====================================================
 
 // ---------- 卡片資料 ----------
-// body：身體顏色　belly：肚子顏色　deco：頭上裝飾
-// 想換成自己畫的圖片：在卡片加上 img: "images/xxx.png" 即可
+// 圖片放在 images 資料夾，想換圖只要改 img 的檔名即可
 const CARDS = [
-  { id: 1,  name: "原味奶蛙",   rarity: "N",   body: "#f3f0e6", belly: "#ffffff", deco: "🥛", desc: "最經典的一杯鮮奶" },
-  { id: 2,  name: "草莓奶蛙",   rarity: "N",   body: "#f9c4d2", belly: "#fff0f4", deco: "🍓", desc: "粉粉甜甜的草莓牛奶" },
-  { id: 3,  name: "巧克力奶蛙", rarity: "N",   body: "#b78a6b", belly: "#f1ddc9", deco: "🍫", desc: "可可香氣滿滿" },
-  { id: 4,  name: "抹茶奶蛙",   rarity: "N",   body: "#a9cf8a", belly: "#eef7e3", deco: "🍵", desc: "微苦回甘的大人口味" },
-  { id: 5,  name: "香蕉奶蛙",   rarity: "N",   body: "#f7e17c", belly: "#fffbe2", deco: "🍌", desc: "早餐店的好朋友" },
-  { id: 6,  name: "珍奶奶蛙",   rarity: "R",   body: "#d9b48f", belly: "#f7ead9", deco: "🧋", desc: "身上有 Q 彈珍珠" },
-  { id: 7,  name: "布丁奶蛙",   rarity: "R",   body: "#f5d77e", belly: "#fff6d8", deco: "🍮", desc: "頭頂有焦糖" },
-  { id: 8,  name: "芋頭奶蛙",   rarity: "R",   body: "#c3a6d8", belly: "#f3ebf9", deco: "💜", desc: "綿密芋泥口感" },
-  { id: 9,  name: "優格奶蛙",   rarity: "R",   body: "#a9d7ee", belly: "#f0f9fd", deco: "🫐", desc: "酸酸的藍莓優格" },
-  { id: 10, name: "星空奶蛙",   rarity: "SR",  body: "#3d4a8a", belly: "#c9d2f5", deco: "✨", desc: "晚上才會出現" },
-  { id: 11, name: "彩虹奶蛙",   rarity: "SR",  body: "rainbow", belly: "#ffffff", deco: "🌈", desc: "下過雨才看得到" },
-  { id: 12, name: "黃金奶蛙王", rarity: "SSR", body: "gold",    belly: "#fff6cc", deco: "👑", desc: "傳說中的奶蛙之王" },
+  { id: 1,  name: "奶蛙",         rarity: "N",   img: "images/naiwa.jpg",      desc: "一切的起點，最原始的奶蛙" },
+  { id: 2,  name: "奶雞",         rarity: "N",   img: "images/chicken.jpg",    desc: "頭上長了一撮雞冠" },
+  { id: 3,  name: "奶鼠",         rarity: "N",   img: "images/mouse.jpg",      desc: "耳朵圓圓的，很愛偷吃起司" },
+  { id: 4,  name: "奶牛",         rarity: "N",   img: "images/cow.jpg",        desc: "有角的奶蛙，喝的是自己的奶？" },
+  { id: 5,  name: "奶傘奶褲奶蛙", rarity: "N",   img: "images/umbrella.jpg",   desc: "人，下雨了" },
+  { id: 6,  name: "奶拖車",       rarity: "R",   img: "images/scooter.jpg",    desc: "奶蛙專屬交通工具" },
+  { id: 10, name: "仙度瑞奶蛙",   rarity: "R",   img: "images/cinderella.jpg", desc: "午夜十二點前要回家" },
+  { id: 8,  name: "美奶魚蛙",     rarity: "R",   img: "images/mermaid.jpg",    desc: "住在海底的奶蛙" },
+  { id: 9,  name: "奶蛙仙子",     rarity: "R",   img: "images/fairy.jpg",      desc: "揮一揮魔杖，變出牛奶" },
+  { id: 7,  name: "奶家人？",     rarity: "SR",  img: "images/family.jpg",     desc: "到底是不是一家人？" },
+  { id: 11, name: "蒙娜麗莎奶蛙", rarity: "SR",  img: "images/monalisa.jpg",   desc: "神秘的微笑" },
+  { id: 12, name: "天使奶蛙",     rarity: "SSR", img: "images/angel.jpg",      desc: "傳說中從天而降的奶蛙" },
 ];
 
 const RARITY = {
@@ -43,52 +42,9 @@ function saveState() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
 }
 
-// ---------- 奶蛙圖案（SVG） ----------
-let svgId = 0;
+// ---------- 卡片圖片 ----------
 function frogSVG(card) {
-  if (card.img) return `<img src="${card.img}" alt="${card.name}" style="width:100%;max-width:140px">`;
-
-  const id = "g" + (svgId++);
-  let defs = "";
-  let fill = card.body;
-  if (card.body === "rainbow") {
-    defs = `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffb3ba"/><stop offset=".25" stop-color="#ffdfba"/>
-      <stop offset=".5" stop-color="#ffffba"/><stop offset=".75" stop-color="#baffc9"/>
-      <stop offset="1" stop-color="#bae1ff"/></linearGradient>`;
-    fill = `url(#${id})`;
-  } else if (card.body === "gold") {
-    defs = `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffe58a"/><stop offset="1" stop-color="#e8a820"/></linearGradient>`;
-    fill = `url(#${id})`;
-  }
-
-  const stars = card.id === 10
-    ? `<text x="22" y="72" font-size="8" fill="#fff">★</text><text x="70" y="80" font-size="6" fill="#fff">★</text><text x="40" y="88" font-size="5" fill="#fff">★</text>`
-    : "";
-  const pearls = card.id === 6
-    ? `<circle cx="30" cy="78" r="3" fill="#4a3226"/><circle cx="70" cy="74" r="3" fill="#4a3226"/><circle cx="64" cy="86" r="3" fill="#4a3226"/>`
-    : "";
-
-  return `
-  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs>${defs}</defs>
-    <ellipse cx="50" cy="66" rx="36" ry="27" fill="${fill}" stroke="#5b4636" stroke-width="2"/>
-    <circle cx="31" cy="40" r="13" fill="${fill}" stroke="#5b4636" stroke-width="2"/>
-    <circle cx="69" cy="40" r="13" fill="${fill}" stroke="#5b4636" stroke-width="2"/>
-    <ellipse cx="50" cy="72" rx="21" ry="15" fill="${card.belly}"/>
-    ${stars}${pearls}
-    <circle cx="31" cy="40" r="8" fill="#fff"/>
-    <circle cx="69" cy="40" r="8" fill="#fff"/>
-    <circle cx="33" cy="41" r="4.5" fill="#3b2a20"/>
-    <circle cx="67" cy="41" r="4.5" fill="#3b2a20"/>
-    <circle cx="34.5" cy="39.5" r="1.5" fill="#fff"/>
-    <circle cx="68.5" cy="39.5" r="1.5" fill="#fff"/>
-    <ellipse cx="25" cy="58" rx="6" ry="3.5" fill="#f59fb5" opacity=".7"/>
-    <ellipse cx="75" cy="58" rx="6" ry="3.5" fill="#f59fb5" opacity=".7"/>
-    <path d="M43 59 Q50 66 57 59" fill="none" stroke="#5b4636" stroke-width="2" stroke-linecap="round"/>
-    <text x="50" y="22" font-size="17" text-anchor="middle">${card.deco}</text>
-  </svg>`;
+  return `<img src="${card.img}" alt="${card.name}" draggable="false">`;
 }
 
 // ---------- 共用：更新點數 ----------
@@ -106,6 +62,7 @@ document.querySelectorAll(".tab").forEach(tab => {
     document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
     tab.classList.add("active");
     document.getElementById(tab.dataset.tab).classList.add("active");
+    if (tab.dataset.tab !== "game") pauseGame();
     if (tab.dataset.tab === "dex") renderDex();
   });
 });
@@ -115,7 +72,12 @@ document.querySelectorAll(".tab").forEach(tab => {
 // ====================================================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-const W = canvas.width, H = canvas.height;
+const W = 360, H = 480;
+// 高解析度螢幕（Retina、手機）讓畫面不模糊
+const DPR = Math.min(window.devicePixelRatio || 1, 3);
+canvas.width = W * DPR;
+canvas.height = H * DPR;
+ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 const GAME_TIME = 30;
 
 const EGG_TYPES = [
@@ -123,6 +85,17 @@ const EGG_TYPES = [
   { type: "gold", chance: 10, score: 30 },
   { type: "bad",  chance: 20, score: -20 },
 ];
+
+// 遊戲用圖片
+function loadImg(src) { const im = new Image(); im.src = src; return im; }
+const IMG = {
+  player: loadImg("images/player.png"),
+  milk:   loadImg("images/egg.png"),
+  gold:   loadImg("images/egg-gold.png"),
+  bad:    loadImg("images/egg-bad.png"),
+};
+const FROG_W = 66, FROG_H = 110;
+const EGG_W = 36, EGG_H = 42;
 
 let game = null;     // 遊戲進行中的資料
 const keys = { left: false, right: false };
@@ -137,7 +110,26 @@ function startGame() {
     popups: [],
     spawnTimer: 0,
     lastTime: performance.now(),
+    paused: false,
   };
+  document.getElementById("overlay").classList.add("hidden");
+  requestAnimationFrame(loop);
+}
+
+// 切換到其他分頁時暫停遊戲
+function pauseGame() {
+  if (!game || game.paused) return;
+  game.paused = true;
+  keys.left = keys.right = false;
+  document.getElementById("overlay-title").textContent = "⏸ 暫停中";
+  document.getElementById("overlay-text").innerHTML =
+    `目前 <b>${game.score}</b> 分，還剩 <b>${Math.ceil(game.timeLeft)}</b> 秒`;
+  document.getElementById("start-btn").textContent = "繼續遊戲";
+  document.getElementById("overlay").classList.remove("hidden");
+}
+function resumeGame() {
+  game.paused = false;
+  game.lastTime = performance.now();
   document.getElementById("overlay").classList.add("hidden");
   requestAnimationFrame(loop);
 }
@@ -152,7 +144,7 @@ function randomEggType() {
 }
 
 function loop(now) {
-  if (!game) return;
+  if (!game || game.paused) return;
   const dt = Math.min((now - game.lastTime) / 1000, 0.05);
   game.lastTime = now;
   const elapsed = GAME_TIME - game.timeLeft;
@@ -184,10 +176,10 @@ function loop(now) {
   }
 
   // 奶蛋掉落與碰撞
-  const frogTop = H - 70;
+  const frogTop = H - 12 - FROG_H + 10;   // 奶蛙頭頂附近
   game.eggs = game.eggs.filter(egg => {
     egg.y += egg.vy * dt;
-    if (egg.y > frogTop && egg.y < frogTop + 30 && Math.abs(egg.x - game.frogX) < 40) {
+    if (egg.y > frogTop && egg.y < frogTop + 40 && Math.abs(egg.x - game.frogX) < FROG_W / 2 + 12) {
       game.score = Math.max(0, game.score + egg.score);
       game.popups.push({ x: egg.x, y: frogTop, text: (egg.score > 0 ? "+" : "") + egg.score, life: 0.8, good: egg.score > 0 });
       return false;
@@ -206,65 +198,11 @@ function loop(now) {
 }
 
 function drawEgg(egg) {
-  ctx.save();
-  ctx.translate(egg.x, egg.y);
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 13, 17, 0, 0, Math.PI * 2);
-  ctx.fillStyle = egg.type === "gold" ? "#ffd54f" : egg.type === "bad" ? "#a5ab86" : "#fffdf5";
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#5b4636";
-  ctx.stroke();
-
-  if (egg.type === "milk") {          // 牛奶滴
-    ctx.fillStyle = "#cfe8f7";
-    ctx.beginPath();
-    ctx.arc(0, 4, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (egg.type === "gold") {   // 閃光
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.ellipse(-4, -6, 3, 5, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-  } else {                            // 裂痕
-    ctx.beginPath();
-    ctx.moveTo(-10, -2); ctx.lineTo(-4, 3); ctx.lineTo(1, -3); ctx.lineTo(6, 3); ctx.lineTo(11, -1);
-    ctx.stroke();
-    ctx.fillStyle = "#6f7556";
-    ctx.beginPath(); ctx.arc(-4, -9, 2.5, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.restore();
+  ctx.drawImage(IMG[egg.type], egg.x - EGG_W / 2, egg.y - EGG_H / 2, EGG_W, EGG_H);
 }
 
 function drawFrog(x) {
-  const y = H - 45;
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = "#5b4636";
-  ctx.fillStyle = "#cdebc5";
-  // 身體
-  ctx.beginPath(); ctx.ellipse(0, 10, 38, 26, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  // 眼睛凸起
-  [-18, 18].forEach(ex => {
-    ctx.fillStyle = "#cdebc5";
-    ctx.beginPath(); ctx.arc(ex, -14, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(ex, -14, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#3b2a20";
-    ctx.beginPath(); ctx.arc(ex, -13, 4, 0, Math.PI * 2); ctx.fill();
-  });
-  // 肚子
-  ctx.fillStyle = "#fffdf7";
-  ctx.beginPath(); ctx.ellipse(0, 16, 22, 14, 0, 0, Math.PI * 2); ctx.fill();
-  // 腮紅
-  ctx.fillStyle = "rgba(245,159,181,.7)";
-  ctx.beginPath(); ctx.ellipse(-25, 4, 6, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(25, 4, 6, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-  // 張嘴
-  ctx.fillStyle = "#e98aa3";
-  ctx.beginPath(); ctx.ellipse(0, 3, 8, 5, 0, 0, Math.PI); ctx.fill(); ctx.stroke();
-  ctx.restore();
+  ctx.drawImage(IMG.player, x - FROG_W / 2, H - 12 - FROG_H, FROG_W, FROG_H);
 }
 
 function draw() {
@@ -305,7 +243,7 @@ function endGame() {
 
 // 鍵盤操作
 document.addEventListener("keydown", e => {
-  if (!game) return;
+  if (!game || game.paused) return;
   if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { keys.left = true; game.targetX = null; e.preventDefault(); }
   if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { keys.right = true; game.targetX = null; e.preventDefault(); }
 });
@@ -319,10 +257,13 @@ function pointerToX(e) {
   const rect = canvas.getBoundingClientRect();
   return (e.clientX - rect.left) * (W / rect.width);
 }
-canvas.addEventListener("pointermove", e => { if (game) game.targetX = pointerToX(e); });
-canvas.addEventListener("pointerdown", e => { if (game) game.targetX = pointerToX(e); });
+canvas.addEventListener("pointermove", e => { if (game && !game.paused) game.targetX = pointerToX(e); });
+canvas.addEventListener("pointerdown", e => { if (game && !game.paused) game.targetX = pointerToX(e); });
 
-document.getElementById("start-btn").addEventListener("click", startGame);
+document.getElementById("start-btn").addEventListener("click", () => {
+  if (game && game.paused) resumeGame();
+  else startGame();
+});
 
 // ====================================================
 // 抽卡
