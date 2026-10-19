@@ -197,12 +197,30 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
+// 圖片是否已成功載入（沒載入時改畫簡單圖形，避免遊戲當掉）
+function ready(img) { return img.complete && img.naturalWidth > 0; }
+
 function drawEgg(egg) {
-  ctx.drawImage(IMG[egg.type], egg.x - EGG_W / 2, egg.y - EGG_H / 2, EGG_W, EGG_H);
+  const img = IMG[egg.type];
+  if (ready(img)) {
+    ctx.drawImage(img, egg.x - EGG_W / 2, egg.y - EGG_H / 2, EGG_W, EGG_H);
+  } else {
+    ctx.fillStyle = egg.type === "gold" ? "#ffc93c" : egg.type === "bad" ? "#9ea57f" : "#f3d27a";
+    ctx.beginPath();
+    ctx.ellipse(egg.x, egg.y, EGG_W / 2, EGG_H / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function drawFrog(x) {
-  ctx.drawImage(IMG.player, x - FROG_W / 2, H - 12 - FROG_H, FROG_W, FROG_H);
+  if (ready(IMG.player)) {
+    ctx.drawImage(IMG.player, x - FROG_W / 2, H - 12 - FROG_H, FROG_W, FROG_H);
+  } else {
+    ctx.fillStyle = "#f3d27a";
+    ctx.beginPath();
+    ctx.ellipse(x, H - 12 - FROG_H / 2, FROG_W / 2, FROG_H / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function draw() {
