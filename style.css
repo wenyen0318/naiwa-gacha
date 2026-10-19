@@ -35,6 +35,17 @@ body {
   padding: 18px 16px 8px;
 }
 .top h1 { margin: 0; font-size: 1.6rem; }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.mute-btn {
+  border: none;
+  background: #fff;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #e8d9c6;
+}
 .points {
   background: var(--pink);
   padding: 6px 16px;

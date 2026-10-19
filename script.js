@@ -30,7 +30,7 @@ const COST = 100;
 const SAVE_KEY = "naiwa-gacha-save";
 
 // ---------- 存檔 ----------
-let state = { points: 0, best: 0, collection: {} };
+let state = { points: 0, best: 0, collection: {}, pity: 0, muted: false };
 
 function loadState() {
   try {
@@ -109,6 +109,7 @@ function startGame() {
     eggs: [],
     popups: [],
     spawnTimer: 0,
+    badStreak: 0,
     lastTime: performance.now(),
     paused: false,
   };
@@ -165,7 +166,11 @@ function loop(now) {
   // 產生奶蛋（越來越快）
   game.spawnTimer -= dt;
   if (game.spawnTimer <= 0) {
-    const t = randomEggType();
+    let t = randomEggType();
+    // 避免壞蛋太多：不連續出 3 顆壞蛋，畫面上最多同時 2 顆壞蛋
+    const badOnScreen = game.eggs.filter(e => e.type === "bad").length;
+    if (t.type === "bad" && (game.badStreak >= 2 || badOnScreen >= 2)) t = EGG_TYPES[0];
+    game.badStreak = t.type === "bad" ? game.badStreak + 1 : 0;
     game.eggs.push({
       x: 20 + Math.random() * (W - 40),
       y: -20,
@@ -284,6 +289,136 @@ document.getElementById("start-btn").addEventListener("click", () => {
 });
 
 // ====================================================
+// 音效：捧腹大笑
+// 優先播放 sounds/laugh.mp3；讀不到音檔時改用程式合成的笑聲
+// ====================================================
+let audioCtx = null;
+let laughBuffer = null;      // 解碼後的笑聲（Web Audio 用）
+const laughAudio = new Audio("sounds/laugh.mp3");   // 備用播放方式
+laughAudio.preload = "auto";
+let laughFileOK = true;
+laughAudio.addEventListener("error", () => { laughFileOK = false; });
+
+function getAudioCtx() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  } catch (e) { audioCtx = null; }
+  return audioCtx;
+}
+
+// 預先下載並解碼笑聲，抽卡時才能準時播放
+fetch("sounds/laugh.mp3")
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+  .then(data => {
+    const ac = getAudioCtx();
+    return ac && new Promise((ok, fail) => ac.decodeAudioData(data, ok, fail));
+  })
+  .then(buf => { if (buf) laughBuffer = buf; })
+  .catch(() => {});
+
+function playLaugh(delay, big) {
+  if (state.muted) return;
+  const ac = getAudioCtx();
+  if (ac && ac.state === "suspended") ac.resume();
+  const length = big ? 5 : 2.5;        // 抽到 SR／SSR 笑比較久
+
+  // 方法 1：Web Audio 播放音檔（最準時）
+  if (ac && laughBuffer) {
+    const src = ac.createBufferSource();
+    src.buffer = laughBuffer;
+    const g = ac.createGain();
+    const t0 = ac.currentTime + delay;
+    // 每次從音檔中隨機一段開始播，笑聲才不會每次都一樣
+    const offset = Math.random() * Math.max(0, laughBuffer.duration - length);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(1, t0 + 0.05);
+    g.gain.setValueAtTime(1, t0 + length - 0.4);
+    g.gain.linearRampToValueAtTime(0, t0 + length);
+    src.connect(g); g.connect(ac.destination);
+    src.start(t0, offset, length);
+    return;
+  }
+  // 方法 2：一般 Audio 播放音檔（直接開本機檔案時）
+  if (laughFileOK) {
+    setTimeout(() => {
+      laughAudio.currentTime = Math.random() * Math.max(0, (laughAudio.duration || 0) - length);
+      laughAudio.volume = 1;
+      laughAudio.play().catch(() => synthLaugh(0, big));
+      setTimeout(() => laughAudio.pause(), length * 1000);
+    }, delay * 1000);
+    return;
+  }
+  // 方法 3：程式合成笑聲
+  synthLaugh(delay, big);
+}
+
+function synthLaugh(delay, big) {
+  const ac = getAudioCtx();
+  if (!ac) return;
+
+  const t0 = ac.currentTime + delay;
+  const count = big ? 11 : 7;          // 抽到 SR／SSR 笑比較久
+  const out = ac.createGain();
+  out.gain.value = 1.0;
+  out.connect(ac.destination);
+
+  // 聲帶：鋸齒波，經過「啊」的共振峰濾波
+  const voice = ac.createOscillator();
+  voice.type = "sawtooth";
+  const vGain = ac.createGain();
+  vGain.gain.value = 0;
+  voice.connect(vGain);
+  [[750, 6, 1], [1150, 8, 0.6], [2600, 10, 0.25]].forEach(([f, q, g]) => {
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = q;
+    const amp = ac.createGain(); amp.gain.value = g * 3;
+    vGain.connect(bp); bp.connect(amp); amp.connect(out);
+  });
+
+  // 氣音「哈」的 h：白噪音
+  const len = Math.ceil(ac.sampleRate * (count * 0.25 + 0.5));
+  const buf = ac.createBuffer(1, len, ac.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  const noise = ac.createBufferSource();
+  noise.buffer = buf;
+  const nFilter = ac.createBiquadFilter();
+  nFilter.type = "bandpass"; nFilter.frequency.value = 1400; nFilter.Q.value = 0.8;
+  const nGain = ac.createGain();
+  nGain.gain.value = 0;
+  noise.connect(nFilter); nFilter.connect(nGain); nGain.connect(out);
+
+  // 每一聲「哈」：先氣音再出聲，音高逐漸往下掉
+  let t = t0;
+  for (let i = 0; i < count; i++) {
+    const dur = 0.13 + Math.random() * 0.04;
+    const pitch = 300 - i * (big ? 12 : 16) + Math.random() * 25;
+    nGain.gain.setValueAtTime(0, t);
+    nGain.gain.linearRampToValueAtTime(0.35, t + 0.02);
+    nGain.gain.linearRampToValueAtTime(0.05, t + 0.05);
+    nGain.gain.linearRampToValueAtTime(0, t + dur);
+    voice.frequency.setValueAtTime(pitch * 1.08, t + 0.03);
+    voice.frequency.exponentialRampToValueAtTime(pitch * 0.85, t + dur);
+    vGain.gain.setValueAtTime(0, t + 0.025);
+    vGain.gain.linearRampToValueAtTime(0.5, t + 0.05);
+    vGain.gain.setValueAtTime(0.5, t + dur * 0.6);
+    vGain.gain.linearRampToValueAtTime(0, t + dur);
+    t += dur + 0.05 + (i === 3 && big ? 0.18 : 0);   // 笑到一半換氣
+  }
+  voice.start(t0); noise.start(t0);
+  voice.stop(t + 0.1); noise.stop(t + 0.1);
+}
+
+// 靜音按鈕
+const muteBtn = document.getElementById("mute-btn");
+function updateMute() { muteBtn.textContent = state.muted ? "🔇" : "🔊"; }
+muteBtn.addEventListener("click", () => {
+  state.muted = !state.muted;
+  saveState();
+  updateMute();
+});
+
+// ====================================================
 // 抽卡
 // ====================================================
 const drawBtn = document.getElementById("draw-btn");
@@ -291,6 +426,9 @@ const drawCard = document.getElementById("draw-card");
 const cardFront = document.getElementById("card-front");
 const drawMsg = document.getElementById("draw-msg");
 let drawing = false;
+
+// 隱藏保底：連續 PITY 抽都沒有 SSR，這一抽必定是 SSR（畫面上不顯示）
+const PITY = 50;
 
 function rollCard() {
   // 1. 先決定稀有度
@@ -300,6 +438,9 @@ function rollCard() {
     if (r < RARITY[key].rate) { rarity = key; break; }
     r -= RARITY[key].rate;
   }
+  state.pity = (state.pity || 0) + 1;
+  if (state.pity >= PITY) rarity = "SSR";
+  if (rarity === "SSR") state.pity = 0;
   // 2. 再從該稀有度隨機挑一張
   const pool = CARDS.filter(c => c.rarity === rarity);
   return pool[Math.floor(Math.random() * pool.length)];
@@ -313,6 +454,7 @@ drawBtn.addEventListener("click", () => {
   state.points -= COST;
   const card = rollCard();
   const isNew = !state.collection[card.id];
+  playLaugh(0.9, card.rarity === "SSR" || card.rarity === "SR");   // 翻開卡片時大笑
   state.collection[card.id] = (state.collection[card.id] || 0) + 1;
   saveState();
   pointsEl.textContent = state.points;
@@ -369,7 +511,7 @@ function renderDex() {
 
 document.getElementById("reset-btn").addEventListener("click", () => {
   if (!confirm("確定要清除所有點數和卡片嗎？")) return;
-  state = { points: 0, best: 0, collection: {} };
+  state = { points: 0, best: 0, collection: {}, pity: 0, muted: state.muted };
   saveState();
   updatePoints();
   renderDex();
@@ -377,5 +519,6 @@ document.getElementById("reset-btn").addEventListener("click", () => {
 
 // ---------- 開始 ----------
 loadState();
+updateMute();
 updatePoints();
 renderDex();
