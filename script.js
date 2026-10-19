@@ -306,6 +306,23 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+// iPhone／iPad：讓聲音在「靜音模式」下也能播放（Safari 16.4 以上支援）
+try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+
+// iPhone／Safari 需要使用者第一次點擊時「解鎖」音效
+function unlockAudio() {
+  const ac = getAudioCtx();
+  if (!ac) return;
+  if (ac.state !== "running") ac.resume();
+  const silent = ac.createBuffer(1, 1, 22050);
+  const src = ac.createBufferSource();
+  src.buffer = silent;
+  src.connect(ac.destination);
+  src.start(0);
+}
+["pointerdown", "touchend", "keydown"].forEach(ev =>
+  document.addEventListener(ev, unlockAudio, { once: true, capture: true }));
+
 // 預先下載並解碼笑聲，抽卡時才能準時播放
 fetch("sounds/laugh.mp3")
   .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
