@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>奶蛙抽卡樂園</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>🐸 奶蛙抽卡樂園</h1>
+    <div class="points">點數：<span id="points">0</span></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="game">🥚 接奶蛋</button>
+    <button class="tab" data-tab="gacha">🎴 抽卡</button>
+    <button class="tab" data-tab="dex">📖 圖鑑</button>
+  </nav>
+
+  <main>
+    <!-- 小遊戲 -->
+    <section id="game" class="panel active">
+      <div class="game-info">
+        <span>分數：<b id="score">0</b></span>
+        <span>時間：<b id="timer">30</b> 秒</span>
+        <span>最高分：<b id="best">0</b></span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="canvas" width="360" height="480"></canvas>
+        <div id="overlay" class="overlay">
+          <h2 id="overlay-title">接奶蛋賺點數！</h2>
+          <p id="overlay-text">
+            ⬅️ ➡️ 方向鍵、A／D，或用滑鼠、手指拖曳移動奶蛙<br>
+            🥚 白奶蛋 +10　🌟 金奶蛋 +30　🤢 壞蛋 −20
+          </p>
+          <button id="start-btn" class="btn">開始遊戲</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 抽卡 -->
+    <section id="gacha" class="panel">
+      <div class="card-stage">
+        <div id="draw-card" class="card">
+          <div class="card-inner">
+            <div class="card-face card-back">🐸<span>奶蛙卡</span></div>
+            <div class="card-face card-front" id="card-front"></div>
+          </div>
+        </div>
+      </div>
+      <p id="draw-msg" class="draw-msg">每抽一次需要 100 點</p>
+      <button id="draw-btn" class="btn">抽一次（100 點）</button>
+      <table class="rates">
+        <tr><th>稀有度</th><th>機率</th><th>張數</th></tr>
+        <tr><td><span class="tag N">N 普通</span></td><td>60%</td><td>5</td></tr>
+        <tr><td><span class="tag R">R 稀有</span></td><td>30%</td><td>4</td></tr>
+        <tr><td><span class="tag SR">SR 超稀有</span></td><td>9%</td><td>2</td></tr>
+        <tr><td><span class="tag SSR">SSR 傳說</span></td><td>1%</td><td>1</td></tr>
+      </table>
+    </section>
+
+    <!-- 圖鑑 -->
+    <section id="dex" class="panel">
+      <div class="progress-box">
+        <div>收集進度：<b id="dex-count">0</b> / 12</div>
+        <div class="bar"><div id="dex-bar"></div></div>
+      </div>
+      <div id="dex-grid" class="dex-grid"></div>
+      <button id="reset-btn" class="btn ghost">清除所有紀錄</button>
+    </section>
+  </main>
+
+  <footer>作業作品・小遊戲＋抽卡互動網頁</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
